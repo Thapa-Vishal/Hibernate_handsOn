@@ -2,8 +2,11 @@ package com.cts.training;
 
 
 import java.time.LocalDate;
+import java.util.List;
 
+import org.hibernate.HibernateException;
 import org.hibernate.Session;
+
 
 import com.cts.training.entity.Countries;
 import com.cts.training.entity.Departments;
@@ -12,6 +15,7 @@ import com.cts.training.entity.JobHistory;
 import com.cts.training.entity.Jobs;
 import com.cts.training.entity.Locations;
 import com.cts.training.entity.Regions;
+import javax.persistence.Query;
 
 /**
  * Hello world!
@@ -21,11 +25,50 @@ public class App
 {
     public static void main( String[] args )
     {
-    	oneToManyOrOneToOne();
+    	//dataInsertion();
+    	hibernateSQLQueries();
+    	
     	
     }
 
-	private static void oneToManyOrOneToOne() {
+	private static void hibernateSQLQueries() {
+		try {
+			Session session = HibernateUtil.sessionFactory().openSession();
+			session.getTransaction().begin();
+			List<Locations> locationList = session.createQuery("From Locations").list();
+			session.getTransaction().commit();
+			session.close();
+			System.out.println("Location Table Data");
+			for(Locations location:locationList) {
+				System.out.println(location.toString());
+			}
+		} catch (HibernateException he) {
+			System.out.println(he.getMessage());
+		}finally {
+			System.out.println("Query Worked");
+		}
+		try {
+			Session session = HibernateUtil.sessionFactory().openSession();
+			session.getTransaction().begin();
+			String hql = "UPDATE Countries c set c.countryName = :name WHERE c.countryId > :id";
+			Query query =session.createQuery(hql);
+			query.setParameter("name", "India");
+			query.setParameter("id", (Integer)3);
+			int result = query.executeUpdate();
+			session.getTransaction().commit();
+			session.close();
+			System.out.println("Rows Updated " + result);
+			
+		} catch (HibernateException he) {
+			System.out.println(he.getMessage());
+		}finally {
+			System.out.println("Query Worked");
+		}
+		
+		
+	}
+
+	private static void dataInsertion() {
 		Regions region = new Regions("Asia");
 		Regions region1 = new Regions("North America");
 		
@@ -55,6 +98,7 @@ public class App
     	
     	try(Session session=HibernateUtil.sessionFactory().openSession()){
     		session.getTransaction().begin();
+    		
     		session.persist(region);
     		session.persist(region1);
     		
@@ -79,7 +123,6 @@ public class App
     		session.persist(history1);
     		session.persist(history2);
     		
-
     		session.getTransaction().commit();
     		session.close();
     	}
